@@ -3,9 +3,9 @@ use std::time;
 
 mod config;
 mod game;
+mod grid;
 mod helpers;
 mod particle;
-mod quadtree;
 mod ui;
 
 use config::*;
@@ -37,7 +37,10 @@ async fn main() {
 
         game.draw();
 
-        println!("{}", get_fps());
+        // Print FPS every second
+        if get_time() % 1. < get_frame_time() as f64 {
+            println!("FPS: {}", get_fps());
+        }
 
         next_frame().await
     }

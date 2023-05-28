@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
 use crate::config::*;
-use crate::quadtree::Quadtree;
+use crate::grid::Grid;
 #[derive(Clone)]
 pub struct ParticleType {
     pub color: Color,
@@ -33,7 +33,7 @@ impl Particle {
 pub struct Particles {
     particles: Vec<Particle>,
     num_particles: usize,
-    quadtree: Quadtree,
+    grid: Grid,
 }
 
 impl Particles {
@@ -41,61 +41,75 @@ impl Particles {
         Self {
             particles: Vec::new(),
             num_particles: 0,
-            quadtree: Quadtree::new(
-                QUADTREE_CAPACITY,
-                Rect::new(0., 0., game_area_size.x, game_area_size.y),
-            ),
+            grid: Grid::new(game_area_size, MAX_DISTNACE.max(MIN_DISTANCE)),
         }
     }
 
     pub fn add_particle(&mut self, particle: Particle) {
-        self.quadtree.insert(self.num_particles, particle.pos);
+        self.grid.insert(self.num_particles, particle.pos);
         self.particles.push(particle);
         self.num_particles += 1;
     }
 
+    pub fn update_cell(&mut self, pos: (usize, usize), types: &Vec<ParticleType>) {
+        let cell_x = pos.0 as isize;
+        let cell_y = pos.1 as isize;
+
+        let cell1 = &self.grid.cells[cell_y as usize * self.grid.shape.0 + cell_x as usize];
+        for cell_i in (cell_y.overflowing_sub(1).0)..=(cell_y.overflowing_add(1).0) {
+            for cell_j in (cell_x.overflowing_sub(1).0)..=(cell_x.overflowing_add(1).0) {
+                let cell_i = cell_i.rem_euclid(self.grid.shape.0 as isize) as usize;
+                let cell_j = cell_j.rem_euclid(self.grid.shape.1 as isize) as usize;
+
+                let cell2 = &self.grid.cells[cell_i * self.grid.shape.0 + cell_j];
+
+                for pi in 0..cell1.particles.len() {
+                    for pj in 0..cell2.particles.len() {
+                        let i = cell1.particles[pi];
+                        let j = cell2.particles[pj];
+                        if i == j {
+                            continue;
+                        }
+                        let typeid2 = self.particles[i].type_id;
+                        let type1 = &types[self.particles[j].type_id];
+
+                        let mut d = self.particles[j].pos - self.particles[i].pos;
+
+                        if d.x.abs() > GAME_AREA_SIZE_U.x / 2. {
+                            d.x = -d.x.signum() * (GAME_AREA_SIZE_U.x - d.x.signum() * d.x);
+                        }
+                        if d.y.abs() > GAME_AREA_SIZE_U.y / 2. {
+                            d.y = -d.y.signum() * (GAME_AREA_SIZE_U.y - d.y.signum() * d.y);
+                        }
+                        let distance = d.length();
+                        d = d.normalize();
+
+                        if distance < MIN_DISTANCE {
+                            self.particles[i].vel -=
+                                REPEL_CONSTANT * d * (MIN_DISTANCE - distance) / MIN_DISTANCE;
+                        } else if distance < MAX_DISTNACE {
+                            let num = (distance - (MAX_DISTNACE + MIN_DISTANCE) / 2.).abs();
+                            let den = MAX_DISTNACE - MIN_DISTANCE;
+                            self.particles[i].vel += ATTRACTION_CONSTANT
+                                * d
+                                * type1.attraction[typeid2]
+                                * (1. - num / den);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn update(&mut self, types: &Vec<ParticleType>) {
-        self.quadtree = Quadtree::new(
-            QUADTREE_CAPACITY,
-            Rect::new(0., 0., GAME_AREA_SIZE_U.x, GAME_AREA_SIZE_U.y),
-        );
+        self.grid = Grid::new(GAME_AREA_SIZE_U, MAX_DISTNACE.max(MIN_DISTANCE));
         for i in 0..self.num_particles {
-            self.quadtree.insert(i, self.particles[i].pos);
+            self.grid.insert(i, self.particles[i].pos);
         }
 
-        for i in 0..self.num_particles {
-            let p1 = &self.particles[i];
-            for j in self.quadtree.query(Circle {
-                x: p1.pos.x,
-                y: p1.pos.y,
-                r: MAX_DISTNACE.max(MIN_DISTANCE),
-            }) {
-                if i == j {
-                    continue;
-                }
-                let typeid2 = self.particles[j].type_id;
-                let type1 = &types[self.particles[i].type_id];
-
-                let mut d = self.particles[j].pos - self.particles[i].pos;
-
-                if d.x.abs() > GAME_AREA_SIZE_U.x / 2. {
-                    d.x = -d.x.signum() * (GAME_AREA_SIZE_U.x - d.x.signum() * d.x);
-                }
-                if d.y.abs() > GAME_AREA_SIZE_U.y / 2. {
-                    d.y = -d.y.signum() * (GAME_AREA_SIZE_U.y - d.y.signum() * d.y);
-                }
-                let distance = d.length();
-                d = d.normalize();
-
-                if distance < MIN_DISTANCE {
-                    self.particles[i].vel -=
-                        REPEL_CONSTANT * d * (MIN_DISTANCE - distance) / MIN_DISTANCE;
-                } else if distance < MAX_DISTNACE {
-                    let num = (distance - (MAX_DISTNACE + MIN_DISTANCE) / 2.).abs();
-                    let den = MAX_DISTNACE - MIN_DISTANCE;
-                    self.particles[i].vel +=
-                        ATTRACTION_CONSTANT * d * type1.attraction[typeid2] * (1. - num / den);
-                }
+        for cell_y in 0..self.grid.shape.1 {
+            for cell_x in 0..self.grid.shape.0 {
+                self.update_cell((cell_x, cell_y), types);
             }
         }
 
@@ -106,12 +120,12 @@ impl Particles {
             self.particles[i].pos += vel;
             if self.particles[i].pos.x < 0. {
                 self.particles[i].pos.x = GAME_AREA_SIZE_U.x;
-            } else if self.particles[i].pos.x > GAME_AREA_SIZE_U.x {
+            } else if self.particles[i].pos.x >= GAME_AREA_SIZE_U.x {
                 self.particles[i].pos.x = 0.;
             }
             if self.particles[i].pos.y < 0. {
                 self.particles[i].pos.y = GAME_AREA_SIZE_U.y;
-            } else if self.particles[i].pos.y > GAME_AREA_SIZE_U.y {
+            } else if self.particles[i].pos.y >= GAME_AREA_SIZE_U.y {
                 self.particles[i].pos.y = 0.;
             }
 
@@ -120,7 +134,7 @@ impl Particles {
     }
 
     pub fn draw(&self, types: &Vec<ParticleType>) {
-        // self.quadtree.draw();
+        self.grid.draw();
 
         for i in 0..self.num_particles {
             let type1 = &types[self.particles[i].type_id];

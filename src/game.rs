@@ -8,11 +8,11 @@ use crate::ui::Menu;
 pub struct Game {
     particles: Particles,
     types: Vec<ParticleType>,
-    paused: bool,
-    pub camera_zoom: f32,
-    prev_mouse_lclick_pos: Option<Vec2>,
     menu: Menu,
     camera: Camera2D,
+    pub camera_zoom: f32,
+    paused: bool,
+    prev_mouse_lclick_pos: Option<Vec2>,
 }
 
 impl Game {
@@ -24,9 +24,6 @@ impl Game {
         Game {
             particles,
             types,
-            paused: false,
-            camera_zoom: 2. / screen_width(),
-            prev_mouse_lclick_pos: None,
             menu,
             camera: Camera2D::from_display_rect(Rect::new(
                 0.,
@@ -34,6 +31,9 @@ impl Game {
                 WINDOW_SIZE_PX.x,
                 WINDOW_SIZE_PX.y,
             )),
+            camera_zoom: 2. / screen_width(),
+            paused: false,
+            prev_mouse_lclick_pos: None,
         }
     }
 
@@ -83,7 +83,6 @@ impl Game {
         if is_key_pressed(KeyCode::Space) {
             self.paused = !self.paused;
         }
-
         if is_key_pressed(KeyCode::R) {
             self.particles = Self::initialize_particles(&self.types);
         }
