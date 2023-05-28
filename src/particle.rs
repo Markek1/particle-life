@@ -70,8 +70,8 @@ impl Particles {
                         if i == j {
                             continue;
                         }
-                        let typeid2 = self.particles[i].type_id;
-                        let type1 = &types[self.particles[j].type_id];
+                        let type1 = &types[self.particles[i].type_id];
+                        let typeid2 = self.particles[j].type_id;
 
                         let mut d = self.particles[j].pos - self.particles[i].pos;
 
@@ -134,7 +134,7 @@ impl Particles {
     }
 
     pub fn draw(&self, types: &Vec<ParticleType>) {
-        self.grid.draw();
+        // self.grid.draw();
 
         for i in 0..self.num_particles {
             let type1 = &types[self.particles[i].type_id];
