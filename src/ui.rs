@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use macroquad::ui::{hash, root_ui};
 
 use crate::config::*;
 use crate::helpers::ClickType;
@@ -243,65 +244,6 @@ impl ButtonGrid {
     }
 }
 
-// struct Slider {
-//     area: Area,
-//     label: String,
-//     color: Color,
-//     min: f32,
-//     max: f32,
-//     value: f32,
-// }
-
-// impl Slider {
-//     pub fn new(area: Area, label: String, color: Color, min: f32, max: f32, value: f32) -> Self {
-//         Self {
-//             area,
-//             label,
-//             color,
-//             min,
-//             max,
-//             value,
-//         }
-//     }
-
-//     pub fn click(&mut self, point: Vec2) {
-//         if self.area.contains(point) {
-//             let x = point.x - self.area.pos.x;
-
-//             let value = (x / self.area.size.x) * (self.max - self.min) + self.min;
-
-//             self.value = value;
-//         }
-//     }
-
-//     pub fn draw(&self) {
-//         draw_rectangle(
-//             self.area.pos.x,
-//             self.area.pos.y,
-//             self.area.size.x,
-//             self.area.size.y,
-//             self.color,
-//         );
-
-//         draw_text(
-//             &self.label,
-//             self.area.pos.x + self.area.size.x / 2.0
-//                 - measure_text(&self.label, None, 20, 1.0).width / 2.0,
-//             self.area.pos.y + self.area.size.y / 2.0 - 10.0,
-//             20.0,
-//             WHITE,
-//         );
-
-//         draw_rectangle(
-//             self.area.pos.x + (self.value - self.min) / (self.max - self.min) * self.area.size.x,
-//             self.area.pos.y,
-//             5.0,
-//             self.area.size.y,
-//             WHITE,
-//         );
-//     }
-// }
-
 pub struct Menu {
     pub area: Area,
     attraction_grid: ButtonGrid,
@@ -348,6 +290,35 @@ impl Menu {
             self.area.size.x,
             screen_height(),
             MENU_BACKGORUND_COLOR,
+        );
+
+        use macroquad::ui;
+
+        root_ui().move_window(6, Vec2::new(200., 200.));
+
+        let attraction_grid_bottom =
+            self.attraction_grid.area.pos.y + self.attraction_grid.area.size.y;
+
+        let area = self.area;
+        let grid_x_size = area.size.x / 1.1;
+        root_ui().window(
+            hash!(),
+            vec2(
+                area.pos.x + area.size.x / 2.0 - grid_x_size / 2.0,
+                attraction_grid_bottom + area.size.x / 2.0 - grid_x_size / 2.0,
+            ),
+            vec2(grid_x_size, 200.),
+            |ui| {
+                ui::widgets::Slider::new(hash!(), 0.01..5.)
+                    .label("Repel")
+                    .ui(ui, unsafe { &mut REPEL_CONSTANT });
+                ui::widgets::Slider::new(hash!(), 0.001..0.05)
+                    .label("Attract")
+                    .ui(ui, unsafe { &mut ATTRACT_CONSTANT });
+                ui::widgets::Slider::new(hash!(), 0.0..1.)
+                    .label("Friction")
+                    .ui(ui, unsafe { &mut PARTICLE_FRICTION });
+            },
         );
 
         self.attraction_grid.draw(types);

@@ -84,16 +84,18 @@ impl Particles {
                         let distance = d.length();
                         d = d.normalize();
 
-                        if distance < MIN_DISTANCE {
-                            self.particles[i].vel -=
-                                REPEL_CONSTANT * d * (MIN_DISTANCE - distance) / MIN_DISTANCE;
-                        } else if distance < MAX_DISTNACE {
-                            let num = (distance - (MAX_DISTNACE + MIN_DISTANCE) / 2.).abs();
-                            let den = MAX_DISTNACE - MIN_DISTANCE;
-                            self.particles[i].vel += ATTRACTION_CONSTANT
-                                * d
-                                * type1.attraction[typeid2]
-                                * (1. - num / den);
+                        unsafe {
+                            if distance < MIN_DISTANCE {
+                                self.particles[i].vel -=
+                                    REPEL_CONSTANT * d * (MIN_DISTANCE - distance) / MIN_DISTANCE;
+                            } else if distance < MAX_DISTNACE {
+                                let num = (distance - (MAX_DISTNACE + MIN_DISTANCE) / 2.).abs();
+                                let den = MAX_DISTNACE - MIN_DISTANCE;
+                                self.particles[i].vel += ATTRACT_CONSTANT
+                                    * d
+                                    * type1.attraction[typeid2]
+                                    * (1. - num / den);
+                            }
                         }
                     }
                 }
@@ -129,7 +131,7 @@ impl Particles {
                 self.particles[i].pos.y = 0.;
             }
 
-            self.particles[i].vel *= 1. - PARTICLE_FRICTION;
+            unsafe { self.particles[i].vel *= 1. - PARTICLE_FRICTION };
         }
     }
 

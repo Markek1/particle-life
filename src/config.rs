@@ -1,18 +1,18 @@
 use macroquad::prelude::*;
 
 pub static WINDOW_SIZE_PX: Vec2 = Vec2::from_array([1400., 800.]);
-pub static GAME_AREA_SIZE_U: Vec2 = Vec2::from_array([1000., 1000.]);
+pub static GAME_AREA_SIZE_U: Vec2 = Vec2::from_array([800., 800.]);
 pub static MENU_AREA_SIZE_PX: Vec2 = Vec2::from_array([500., WINDOW_SIZE_PX.y]);
 
 pub static MIN_DISTANCE: f32 = 10.; // Distance at which particles start to repel each other regardless of their attraction
-pub static MAX_DISTNACE: f32 = 180.; // Distance at which particles stop having an effect on each other
-pub static REPEL_CONSTANT: f32 = 0.5;
-pub static ATTRACTION_CONSTANT: f32 = 0.005;
+pub static MAX_DISTNACE: f32 = 150.; // Distance at which particles stop having an effect on each other
+pub static mut REPEL_CONSTANT: f32 = 2.;
+pub static mut ATTRACT_CONSTANT: f32 = 0.03;
 pub static NUM_PARTICLES: usize = 500;
 pub static PARTICLE_RADIUS: f32 = 3.;
-pub static PARTICLE_FRICTION: f32 = 0.1;
+pub static mut PARTICLE_FRICTION: f32 = 0.15;
 // pub static COLORS: [Color; 7] = [RED, ORANGE, YELLOW, WHITE, GREEN, BLUE, VIOLET];
-pub static COLORS: [Color; 3] = [RED, GREEN, BLUE];
+pub static COLORS: [Color; 4] = [RED, GREEN, BLUE, YELLOW];
 
 pub static CAMERA_DRAG_SPEED: f32 = 750.;
 pub static CAMERA_ZOOM_SPEED: f32 = 0.1;
