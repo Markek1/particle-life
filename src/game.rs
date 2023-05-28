@@ -56,7 +56,7 @@ impl Game {
     }
 
     fn initialize_particles(types: &Vec<ParticleType>) -> Particles {
-        let mut particles = Particles::new();
+        let mut particles = Particles::new(GAME_AREA_SIZE_U);
 
         for _ in 0..NUM_PARTICLES {
             particles.add_particle(Particle::new(
@@ -68,6 +68,13 @@ impl Game {
                 rand::gen_range(0, types.len()),
             ));
         }
+
+        // particles.add_particle(Particle::new([10., 10.], [0., 0.], 0));
+        // particles.add_particle(Particle::new(
+        //     [GAME_AREA_SIZE_U.x - 10., GAME_AREA_SIZE_U.y - 10.],
+        //     [0., 0.],
+        //     1,
+        // ));
 
         particles
     }

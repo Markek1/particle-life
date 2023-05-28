@@ -193,7 +193,6 @@ impl ButtonGrid {
                             *attr = f32::max(*attr - CHANGE_TYPE_ATTRACTION_SPEED, -1.0);
                         }
                     }
-                    println!("{} {}", row, col);
                 }
             }
         }

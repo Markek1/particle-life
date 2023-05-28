@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
 use crate::config::*;
-
+use crate::quadtree::Quadtree;
 #[derive(Clone)]
 pub struct ParticleType {
     pub color: Color,
@@ -33,44 +33,68 @@ impl Particle {
 pub struct Particles {
     particles: Vec<Particle>,
     num_particles: usize,
+    quadtree: Quadtree,
 }
 
 impl Particles {
-    pub fn new() -> Self {
+    pub fn new(game_area_size: Vec2) -> Self {
         Self {
             particles: Vec::new(),
             num_particles: 0,
+            quadtree: Quadtree::new(
+                QUADTREE_CAPACITY,
+                Rect::new(0., 0., game_area_size.x, game_area_size.y),
+            ),
         }
     }
 
     pub fn add_particle(&mut self, particle: Particle) {
+        self.quadtree.insert(self.num_particles, particle.pos);
         self.particles.push(particle);
         self.num_particles += 1;
     }
 
     pub fn update(&mut self, types: &Vec<ParticleType>) {
+        self.quadtree = Quadtree::new(
+            QUADTREE_CAPACITY,
+            Rect::new(0., 0., GAME_AREA_SIZE_U.x, GAME_AREA_SIZE_U.y),
+        );
         for i in 0..self.num_particles {
-            for j in 0..self.num_particles {
-                if i != j {
-                    let typeid2 = self.particles[j].type_id;
-                    let type1 = &types[self.particles[i].type_id];
+            self.quadtree.insert(i, self.particles[i].pos);
+        }
 
-                    let mut force = self.particles[j].pos - self.particles[i].pos;
-                    let distance = force.length();
+        for i in 0..self.num_particles {
+            let p1 = &self.particles[i];
+            for j in self.quadtree.query(Circle {
+                x: p1.pos.x,
+                y: p1.pos.y,
+                r: MAX_DISTNACE.max(MIN_DISTANCE),
+            }) {
+                if i == j {
+                    continue;
+                }
+                let typeid2 = self.particles[j].type_id;
+                let type1 = &types[self.particles[i].type_id];
 
-                    force = force.normalize();
+                let mut d = self.particles[j].pos - self.particles[i].pos;
 
-                    if distance < MIN_DISTANCE {
-                        self.particles[i].vel -=
-                            REPEL_CONSTANT * force * (MIN_DISTANCE - distance) / MIN_DISTANCE;
-                    } else if distance < MAX_DISTNACE {
-                        let num = (distance - (MAX_DISTNACE + MIN_DISTANCE) / 2.).abs();
-                        let den = MAX_DISTNACE - MIN_DISTANCE;
-                        self.particles[i].vel += ATTRACTION_CONSTANT
-                            * force
-                            * type1.attraction[typeid2]
-                            * (1. - num / den);
-                    }
+                if d.x.abs() > GAME_AREA_SIZE_U.x / 2. {
+                    d.x = -d.x.signum() * (GAME_AREA_SIZE_U.x - d.x.signum() * d.x);
+                }
+                if d.y.abs() > GAME_AREA_SIZE_U.y / 2. {
+                    d.y = -d.y.signum() * (GAME_AREA_SIZE_U.y - d.y.signum() * d.y);
+                }
+                let distance = d.length();
+                d = d.normalize();
+
+                if distance < MIN_DISTANCE {
+                    self.particles[i].vel -=
+                        REPEL_CONSTANT * d * (MIN_DISTANCE - distance) / MIN_DISTANCE;
+                } else if distance < MAX_DISTNACE {
+                    let num = (distance - (MAX_DISTNACE + MIN_DISTANCE) / 2.).abs();
+                    let den = MAX_DISTNACE - MIN_DISTANCE;
+                    self.particles[i].vel +=
+                        ATTRACTION_CONSTANT * d * type1.attraction[typeid2] * (1. - num / den);
                 }
             }
         }
@@ -96,6 +120,8 @@ impl Particles {
     }
 
     pub fn draw(&self, types: &Vec<ParticleType>) {
+        // self.quadtree.draw();
+
         for i in 0..self.num_particles {
             let type1 = &types[self.particles[i].type_id];
             draw_circle(
@@ -105,5 +131,16 @@ impl Particles {
                 type1.color,
             );
         }
+
+        // let range = Circle::new(mouse_position().0, mouse_position().1, 200.);
+        // let found = self.quadtree.query(range);
+        // for i in 0..found.len() {
+        //     draw_circle(
+        //         self.particles[found[i]].pos.x,
+        //         self.particles[found[i]].pos.y,
+        //         PARTICLE_RADIUS,
+        //         WHITE,
+        //     );
+        // }
     }
 }

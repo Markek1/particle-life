@@ -5,6 +5,7 @@ mod config;
 mod game;
 mod helpers;
 mod particle;
+mod quadtree;
 mod ui;
 
 use config::*;
@@ -35,6 +36,8 @@ async fn main() {
         game.update();
 
         game.draw();
+
+        println!("{}", get_fps());
 
         next_frame().await
     }
