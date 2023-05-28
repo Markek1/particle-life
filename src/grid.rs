@@ -55,40 +55,6 @@ impl Grid {
         self.cells[y * self.shape.0 + x].particles.push(index);
     }
 
-    pub fn query_single(&self, pos: Vec2) -> &Vec<usize> {
-        let (x, y) = self.cell_pos_from_pos(pos);
-        let cell = &self.cells[y * self.shape.0 + x];
-        &cell.particles
-    }
-
-    // Querry the cell that the position is in + the 8 surrounding cells
-    pub fn query_surroundings(&self, pos: Vec2) -> Vec<usize> {
-        let mut particles = Vec::new();
-        let (x, y) = self.cell_pos_from_pos(pos);
-        let x = x as isize;
-        let y = y as isize;
-
-        for i in (y.overflowing_sub(1).0)..=(y.overflowing_add(1).0) {
-            for j in (x.overflowing_sub(1).0)..=(x.overflowing_add(1).0) {
-                // println!("i: {}, j: {}", i, j);
-                // println!("Self shape: {} {}", self.shape.0, self.shape.1);
-                // println!(
-                //     "Mod: {} {}",
-                //     (i % self.shape.0 as isize),
-                //     (j % self.shape.1 as isize)
-                // );
-                let i = i.rem_euclid(self.shape.0 as isize) as usize;
-                let j = j.rem_euclid(self.shape.1 as isize) as usize;
-
-                let cell = &self.cells[i * self.shape.0 as usize + j];
-                for particle in &cell.particles {
-                    particles.push(*particle);
-                }
-            }
-        }
-        particles
-    }
-
     pub fn draw(&self) {
         for cell in &self.cells {
             draw_rectangle_lines(
