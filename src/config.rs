@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
 pub static WINDOW_SIZE_PX: Vec2 = Vec2::from_array([1400., 800.]);
-pub static GAME_AREA_SIZE_U: Vec2 = Vec2::from_array([800., 800.]);
+pub static GAME_AREA_SIZE_U: Vec2 = Vec2::from_array([1500., 1500.]); // Might act weird when this is not square
 pub static MENU_AREA_SIZE_PX: Vec2 = Vec2::from_array([500., WINDOW_SIZE_PX.y]);
 
 pub static MIN_DISTANCE: f32 = 10.; // Distance at which particles start to repel each other regardless of their attraction

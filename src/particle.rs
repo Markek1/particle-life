@@ -58,8 +58,8 @@ impl Particles {
         let cell1 = &self.grid.cells[cell_y as usize * self.grid.shape.0 + cell_x as usize];
         for cell_i in (cell_y.overflowing_sub(1).0)..=(cell_y.overflowing_add(1).0) {
             for cell_j in (cell_x.overflowing_sub(1).0)..=(cell_x.overflowing_add(1).0) {
-                let cell_i = cell_i.rem_euclid(self.grid.shape.0 as isize) as usize;
-                let cell_j = cell_j.rem_euclid(self.grid.shape.1 as isize) as usize;
+                let cell_i = cell_i.rem_euclid(self.grid.shape.1 as isize) as usize;
+                let cell_j = cell_j.rem_euclid(self.grid.shape.0 as isize) as usize;
 
                 let cell2 = &self.grid.cells[cell_i * self.grid.shape.0 + cell_j];
 

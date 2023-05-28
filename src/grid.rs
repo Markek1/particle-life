@@ -13,11 +13,12 @@ pub struct Grid {
 
 impl Grid {
     pub fn new(game_area_size: Vec2, max_effect_range: f32) -> Self {
-        let cell_size = max_effect_range;
+        let mut cell_size = max_effect_range;
         let shape = (
-            (game_area_size.x / cell_size).ceil() as usize,
-            (game_area_size.y / cell_size).ceil() as usize,
+            (game_area_size.x / cell_size).floor() as usize,
+            (game_area_size.y / cell_size).floor() as usize,
         );
+        cell_size += (game_area_size.x % cell_size) / shape.0 as f32;
         let mut cells = Vec::new();
         for y in 0..shape.1 as usize {
             for x in 0..shape.0 as usize {

@@ -70,11 +70,7 @@ impl Game {
         }
 
         // particles.add_particle(Particle::new([10., 10.], [0., 0.], 0));
-        // particles.add_particle(Particle::new(
-        //     [GAME_AREA_SIZE_U.x - 10., GAME_AREA_SIZE_U.y - 10.],
-        //     [0., 0.],
-        //     1,
-        // ));
+        // particles.add_particle(Particle::new([GAME_AREA_SIZE_U.x - 10., 10.], [0., 0.], 1));
 
         particles
     }
