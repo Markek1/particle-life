@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use num_cpus;
 
 use crate::config::*;
 use crate::grid::Grid;
@@ -61,9 +62,8 @@ impl Particles {
                 let cell_i = cell_i.rem_euclid(self.grid.shape.1 as isize) as usize;
                 let cell_j = cell_j.rem_euclid(self.grid.shape.0 as isize) as usize;
 
-                let cell2 = &self.grid.cells[cell_i * self.grid.shape.0 + cell_j];
-
                 for pi in 0..cell1.particles.len() {
+                    let cell2 = &self.grid.cells[cell_i * self.grid.shape.0 + cell_j];
                     for pj in 0..cell2.particles.len() {
                         let i = cell1.particles[pi];
                         let j = cell2.particles[pj];
@@ -76,14 +76,16 @@ impl Particles {
                         let mut d = self.particles[j].pos - self.particles[i].pos;
 
                         if d.x.abs() > GAME_AREA_SIZE_U.x / 2. {
-                            d.x = -d.x.signum() * (GAME_AREA_SIZE_U.x - d.x.signum() * d.x);
+                            d.x = -d.x.signum() * (GAME_AREA_SIZE_U.x - d.x.abs());
                         }
                         if d.y.abs() > GAME_AREA_SIZE_U.y / 2. {
-                            d.y = -d.y.signum() * (GAME_AREA_SIZE_U.y - d.y.signum() * d.y);
+                            d.y = -d.y.signum() * (GAME_AREA_SIZE_U.y - d.y.abs());
                         }
-                        let distance = d.length();
-                        d = d.normalize();
 
+                        let distance = d.length();
+                        d = d / distance;
+
+                        // Unsafe because of using static variables that might be changed
                         unsafe {
                             if distance < MIN_DISTANCE {
                                 self.particles[i].vel -=
@@ -109,11 +111,26 @@ impl Particles {
             self.grid.insert(i, self.particles[i].pos);
         }
 
+        // let num_cpus = num_cpus::get();
+        // let cells_per_cpu = self.grid.cells.len() / num_cpus;
+        // let remainder = self.grid.cells.len() % num_cpus;
+        // let ranges = (0..num_cpus)
+        //     .map(|i| {
+        //         (
+        //             i * cells_per_cpu + i.min(remainder),
+        //             (i + 1) * cells_per_cpu + (i + 1).min(remainder),
+        //         )
+        //     })
+        //     .collect::<Vec<_>>();
+
+        // for range in ranges {
+
         for cell_y in 0..self.grid.shape.1 {
             for cell_x in 0..self.grid.shape.0 {
                 self.update_cell((cell_x, cell_y), types);
             }
         }
+        // }
 
         for i in 0..self.num_particles {
             let vel = self.particles[i].vel;
