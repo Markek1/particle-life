@@ -11,8 +11,8 @@ pub static mut ATTRACT_CONSTANT: f32 = 0.03;
 pub static NUM_PARTICLES: usize = 2000;
 pub static PARTICLE_RADIUS: f32 = 3.;
 pub static mut PARTICLE_FRICTION: f32 = 0.15;
-pub static COLORS: [Color; 8] = [RED, ORANGE, YELLOW, WHITE, GREEN, BLUE, VIOLET, MAGENTA];
-// pub static COLORS: [Color; 3] = [RED, GREEN, BLUE];
+pub static COLORS: [Color; 7] = [RED, ORANGE, YELLOW, WHITE, GREEN, BLUE, VIOLET];
+// pub static COLORS: [Color; 4] = [RED, GREEN, BLUE, YELLOW];
 
 pub static CAMERA_DRAG_SPEED: f32 = 750.;
 pub static CAMERA_ZOOM_SPEED: f32 = 0.1;

@@ -76,11 +76,17 @@ impl Game {
     }
 
     pub fn handle_input(&mut self) {
+        if is_key_pressed(KeyCode::H) {
+            self.menu.toggle_help();
+        }
         if is_key_pressed(KeyCode::Space) {
             self.paused = !self.paused;
         }
-        if is_key_pressed(KeyCode::R) {
+        if is_key_pressed(KeyCode::P) {
             self.particles = Self::initialize_particles(&self.types);
+        }
+        if is_key_pressed(KeyCode::A) {
+            self.types = Self::initialize_types(None);
         }
         if is_key_pressed(KeyCode::C) {
             self.types = Self::initialize_types(Some(0.));

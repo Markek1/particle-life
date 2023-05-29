@@ -247,6 +247,7 @@ impl ButtonGrid {
 pub struct Menu {
     pub area: Area,
     attraction_grid: ButtonGrid,
+    show_help: bool,
 }
 
 impl Menu {
@@ -275,11 +276,16 @@ impl Menu {
         Menu {
             area,
             attraction_grid,
+            show_help: false,
         }
     }
 
     pub fn click(&mut self, point: Vec2, types: &mut Vec<ParticleType>, click_type: ClickType) {
         self.attraction_grid.click(point, types, click_type);
+    }
+
+    pub fn toggle_help(&mut self) {
+        self.show_help = !self.show_help;
     }
 
     // Draw so that it stays in the same place on the screen
@@ -294,33 +300,67 @@ impl Menu {
 
         use macroquad::ui;
 
-        root_ui().move_window(6, Vec2::new(200., 200.));
-
         let attraction_grid_bottom =
             self.attraction_grid.area.pos.y + self.attraction_grid.area.size.y;
 
         let area = self.area;
         let grid_x_size = area.size.x / 1.1;
-        root_ui().window(
-            hash!(),
-            vec2(
-                area.pos.x + area.size.x / 2.0 - grid_x_size / 2.0,
-                attraction_grid_bottom + area.size.x / 2.0 - grid_x_size / 2.0,
-            ),
-            vec2(grid_x_size, 200.),
-            |ui| {
-                ui::widgets::Slider::new(hash!(), 0.01..5.)
-                    .label("Repel")
-                    .ui(ui, unsafe { &mut REPEL_CONSTANT });
-                ui::widgets::Slider::new(hash!(), 0.001..0.05)
-                    .label("Attract")
-                    .ui(ui, unsafe { &mut ATTRACT_CONSTANT });
-                ui::widgets::Slider::new(hash!(), 0.0..1.)
-                    .label("Friction")
-                    .ui(ui, unsafe { &mut PARTICLE_FRICTION });
-            },
+        let slider_window_pos = vec2(
+            area.pos.x + area.size.x / 2.0 - grid_x_size / 2.0,
+            attraction_grid_bottom + area.size.x / 2.0 - grid_x_size / 2.0,
+        );
+        let slider_window_size = vec2(grid_x_size, 70.);
+        draw_rectangle(
+            slider_window_pos.x,
+            slider_window_pos.y,
+            slider_window_size.x,
+            slider_window_size.y,
+            WHITE,
+        );
+
+        root_ui().window(hash!(), slider_window_pos, slider_window_size, |ui| {
+            ui::widgets::Slider::new(hash!(), 0.01..5.)
+                .label("Repel")
+                .ui(ui, unsafe { &mut REPEL_CONSTANT });
+            ui::widgets::Slider::new(hash!(), 0.001..0.1)
+                .label("Attract")
+                .ui(ui, unsafe { &mut ATTRACT_CONSTANT });
+            ui::widgets::Slider::new(hash!(), 0.0..1.)
+                .label("Friction")
+                .ui(ui, unsafe { &mut PARTICLE_FRICTION });
+        });
+
+        let text_size = 45.;
+        draw_text(
+            "Press H to toggle help",
+            slider_window_pos.x,
+            screen_height() - text_size / 1.5,
+            text_size,
+            WHITE,
         );
 
         self.attraction_grid.draw(types);
+
+        // Draw help window
+        if self.show_help {
+            let size = vec2(400., 400.);
+            let pos = vec2(
+                screen_width() / 2. - size.x / 2.,
+                screen_height() / 2. - size.y / 2.,
+            );
+            root_ui().window(hash!(), pos, size, |ui| {
+                ui::widgets::Label::new("Left click the matrix to increase attraction").ui(ui);
+                ui::widgets::Label::new("Right click the matrix to decrease attraction").ui(ui);
+                ui::widgets::Label::new("Left click and drag to move around").ui(ui);
+                ui::widgets::Label::new("Scroll to zoom in and out").ui(ui);
+                ui::widgets::Label::new("").ui(ui);
+                ui::widgets::Label::new("P     - randomize particles").ui(ui);
+                ui::widgets::Label::new("A     - randomize attraction").ui(ui);
+                ui::widgets::Label::new("C     - clear attraction").ui(ui);
+                ui::widgets::Label::new("N     - randomize particles and attraction").ui(ui);
+                ui::widgets::Label::new("H     - toggle help").ui(ui);
+                ui::widgets::Label::new("Space - pause").ui(ui);
+            });
+        }
     }
 }
