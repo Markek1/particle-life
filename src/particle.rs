@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use num_cpus;
 
 use crate::config::*;
 use crate::grid::Grid;

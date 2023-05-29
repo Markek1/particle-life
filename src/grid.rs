@@ -56,6 +56,7 @@ impl Grid {
         self.cells[y * self.shape.0 + x].particles.push(index);
     }
 
+    #[allow(unused)]
     pub fn draw(&self) {
         for cell in &self.cells {
             draw_rectangle_lines(
