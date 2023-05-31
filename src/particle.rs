@@ -171,7 +171,7 @@ impl Particles {
         for i in 0..self.num_particles {
             let particle = &self.particles[i];
 
-            // Do not draw particle if it's not visible on camera (HUGE PERFORMANCE BOOST)
+            // Do not draw a particle if it's not visible on camera (HUGE PERFORMANCE BOOST)
             let pos_on_screen = camera.world_to_screen(particle.pos);
             if pos_on_screen.x < 0.
                 || pos_on_screen.x > screen_width()
