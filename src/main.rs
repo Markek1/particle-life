@@ -43,7 +43,7 @@ async fn main() {
         // Print FPS every second
         if get_time() % 1. < get_frame_time() as f64 {
             print!("\rFPS: {}", get_fps());
-            stdout.flush().unwrap();
+            stdout.flush().expect("Stdout flush failed");
         }
 
         next_frame().await
