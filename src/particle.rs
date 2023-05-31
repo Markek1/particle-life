@@ -132,10 +132,10 @@ impl Particles {
                     for (_, cell) in chunk.iter().enumerate() {
                         unsafe {
                             // Epic way to avoid refactoring the code.
-                            // It should be safe because update_cells will only
-                            // change velocities, which shouldn't affect other
-                            // updates on that frame. The positions are updated
-                            // Based on their velocities later
+                            // It should be safe because update_cells only needs
+                            // the position of other particles and only
+                            // changes velocities, so doing it in parallel should be okay.
+                            // The positions are updated based on their velocities later
                             let slf = &mut *(self_ptr as *mut Self);
 
                             slf.update_cell(&cell, types);
