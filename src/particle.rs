@@ -148,8 +148,8 @@ impl Particles {
         for i in 0..self.num_particles {
             let vel = self.particles[i].vel;
 
-            // Wrap around
             self.particles[i].pos += vel;
+            // Wrap around
             if self.particles[i].pos.x < 0. {
                 self.particles[i].pos.x = GAME_AREA_SIZE_U.x;
             } else if self.particles[i].pos.x >= GAME_AREA_SIZE_U.x {
