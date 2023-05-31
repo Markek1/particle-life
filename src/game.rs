@@ -67,9 +67,6 @@ impl Game {
             ));
         }
 
-        // particles.add_particle(Particle::new([10., 10.], [0., 0.], 0));
-        // particles.add_particle(Particle::new([GAME_AREA_SIZE_U.x - 10., 10.], [0., 0.], 1));
-
         particles
     }
 
@@ -169,9 +166,8 @@ impl Game {
         self.particles.draw(&self.types, &self.camera);
 
         set_default_camera(); // For drawing the menu
-
         self.menu.draw(&self.types);
 
-        set_camera(&self.camera);
+        set_camera(&self.camera); // FOr the game
     }
 }

@@ -1,5 +1,7 @@
 use macroquad::prelude::*;
 
+pub static MAX_CORES: usize = 8;
+
 pub static WINDOW_SIZE_PX: Vec2 = Vec2::from_array([1400., 800.]);
 pub static GAME_AREA_SIZE_U: Vec2 = Vec2::from_array([2000., 2000.]); // Might act weird when this is not square
 pub static MENU_AREA_SIZE_PX: Vec2 = Vec2::from_array([500., WINDOW_SIZE_PX.y]);
@@ -8,7 +10,7 @@ pub static MIN_DISTANCE: f32 = 10.; // Distance at which particles start to repe
 pub static MAX_DISTNACE: f32 = 80.; // Distance at which particles stop having an effect on each other
 pub static mut REPEL_CONSTANT: f32 = 2.;
 pub static mut ATTRACT_CONSTANT: f32 = 0.03;
-pub static NUM_PARTICLES: usize = 2000;
+pub static NUM_PARTICLES: usize = 5000;
 pub static PARTICLE_RADIUS: f32 = 3.;
 pub static mut PARTICLE_FRICTION: f32 = 0.15;
 pub static COLORS: [Color; 7] = [RED, ORANGE, YELLOW, WHITE, GREEN, BLUE, VIOLET];

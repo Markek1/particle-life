@@ -57,6 +57,12 @@ impl Particles {
         let cell_x = cell.pos.0 as isize;
         let cell_y = cell.pos.1 as isize;
 
+        // Basically do a convolution with a 3x3 kernel over the cells and update each particle
+        // in the central cell based on every particle (except itself) in every surrounding
+        // cell (including its own cell).
+        // This is done to avoid having to check every particle against every other particle
+        // in the game.
+        // The cells wrap around the edges of the game area.
         let cell1 = &self.grid.cells[cell_y as usize * self.grid.shape.0 + cell_x as usize];
         for cell_i in (cell_y.overflowing_sub(1).0)..=(cell_y.overflowing_add(1).0) {
             for cell_j in (cell_x.overflowing_sub(1).0)..=(cell_x.overflowing_add(1).0) {
@@ -114,19 +120,24 @@ impl Particles {
 
         let self_ptr = self as *const _ as usize;
 
-        let num_cpus = num_cpus::get();
+        let num_cpus = num_cpus::get().min(MAX_CORES);
         let core_ids = core_affinity::get_core_ids().unwrap();
         let cells_per_cpu = self.grid.cells.len() / num_cpus;
         let cell_chunks = self.grid.cells.chunks_mut(cells_per_cpu);
 
         thread::scope(|s| {
-            for (i, (chunk, core_id)) in cell_chunks.zip(core_ids).enumerate() {
+            for (_, (chunk, core_id)) in cell_chunks.zip(core_ids).enumerate() {
                 s.spawn(move || {
                     core_affinity::set_for_current(core_id);
-                    for (j, cell) in chunk.iter().enumerate() {
-                        // println!("Thread {} Cell {}", i, j);
+                    for (_, cell) in chunk.iter().enumerate() {
                         unsafe {
+                            // Epic way to avoid refactoring the code.
+                            // It should be safe because update_cells will only
+                            // change velocities, which shouldn't affect other
+                            // updates on that frame. The positions are updated
+                            // Based on their velocities later
                             let slf = &mut *(self_ptr as *mut Self);
+
                             slf.update_cell(&cell, types);
                         }
                     }
@@ -160,35 +171,18 @@ impl Particles {
         for i in 0..self.num_particles {
             let particle = &self.particles[i];
 
-            let view_size_u = 2. / camera.zoom;
-            println!("VIEW SIZE: {:?} {}", view_size_u, camera.zoom);
-            let mid = camera.target;
-            let offset = view_size_u / 2.;
-            let camera_rec = Rect::new(
-                mid.x - offset.x,
-                screen_height() - (mid.y - offset.y),
-                view_size_u.x,
-                -view_size_u.y,
-            );
-
-            if !camera_rec.contains(particle.pos) {
-                // println!("{:?} {:?}", camera_rec, particle.pos);
+            // Do not draw particle if it's not visible on camera (HUGE PERFORMANCE BOOST)
+            let pos_on_screen = camera.world_to_screen(particle.pos);
+            if pos_on_screen.x < 0.
+                || pos_on_screen.x > screen_width()
+                || pos_on_screen.y < 0.
+                || pos_on_screen.y > screen_height()
+            {
                 continue;
             }
 
             let type1 = &types[particle.type_id];
             draw_circle(particle.pos.x, particle.pos.y, PARTICLE_RADIUS, type1.color);
         }
-
-        // let range = Circle::new(mouse_position().0, mouse_position().1, 200.);
-        // let found = self.quadtree.query(range);
-        // for i in 0..found.len() {
-        //     draw_circle(
-        //         self.particles[found[i]].pos.x,
-        //         self.particles[found[i]].pos.y,
-        //         PARTICLE_RADIUS,
-        //         WHITE,
-        //     );
-        // }
     }
 }

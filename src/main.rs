@@ -1,4 +1,6 @@
 use macroquad::prelude::*;
+use std::io;
+use std::io::Write;
 use std::time;
 
 mod config;
@@ -22,6 +24,7 @@ fn window_config() -> Conf {
 
 #[macroquad::main(window_config)]
 async fn main() {
+    let mut stdout = io::stdout();
     rand::srand(
         time::SystemTime::now()
             .duration_since(time::UNIX_EPOCH)
@@ -39,7 +42,8 @@ async fn main() {
 
         // Print FPS every second
         if get_time() % 1. < get_frame_time() as f64 {
-            println!("FPS: {}", get_fps());
+            print!("\rFPS: {}", get_fps());
+            stdout.flush().unwrap();
         }
 
         next_frame().await
