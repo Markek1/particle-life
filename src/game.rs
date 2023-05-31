@@ -163,11 +163,12 @@ impl Game {
     pub fn draw(&mut self) {
         clear_background(BLACK);
 
+        set_camera(&self.camera); // For drawing particles with the new zoom
         self.particles.draw(&self.types, &self.camera);
 
         set_default_camera(); // For drawing the menu
         self.menu.draw(&self.types);
 
-        set_camera(&self.camera); // FOr the game
+        set_camera(&self.camera);
     }
 }
