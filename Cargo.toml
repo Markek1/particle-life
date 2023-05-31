@@ -10,4 +10,6 @@ inherits = "release"
 debug = true
 
 [dependencies]
+core_affinity = "0.8.0"
 macroquad = "0.3.25"
+num_cpus = "1.14.0"

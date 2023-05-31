@@ -1,7 +1,9 @@
+use core_affinity;
 use macroquad::prelude::*;
+use std::thread;
 
 use crate::config::*;
-use crate::grid::Grid;
+use crate::grid::{Cell, Grid};
 #[derive(Clone)]
 pub struct ParticleType {
     pub color: Color,
@@ -51,9 +53,9 @@ impl Particles {
         self.num_particles += 1;
     }
 
-    pub fn update_cell(&mut self, pos: (usize, usize), types: &Vec<ParticleType>) {
-        let cell_x = pos.0 as isize;
-        let cell_y = pos.1 as isize;
+    pub fn update_cell(&mut self, cell: &Cell, types: &Vec<ParticleType>) {
+        let cell_x = cell.pos.0 as isize;
+        let cell_y = cell.pos.1 as isize;
 
         let cell1 = &self.grid.cells[cell_y as usize * self.grid.shape.0 + cell_x as usize];
         for cell_i in (cell_y.overflowing_sub(1).0)..=(cell_y.overflowing_add(1).0) {
@@ -110,26 +112,27 @@ impl Particles {
             self.grid.insert(i, self.particles[i].pos);
         }
 
-        // let num_cpus = num_cpus::get();
-        // let cells_per_cpu = self.grid.cells.len() / num_cpus;
-        // let remainder = self.grid.cells.len() % num_cpus;
-        // let ranges = (0..num_cpus)
-        //     .map(|i| {
-        //         (
-        //             i * cells_per_cpu + i.min(remainder),
-        //             (i + 1) * cells_per_cpu + (i + 1).min(remainder),
-        //         )
-        //     })
-        //     .collect::<Vec<_>>();
+        let self_ptr = self as *const _ as usize;
 
-        // for range in ranges {
+        let num_cpus = num_cpus::get();
+        let core_ids = core_affinity::get_core_ids().unwrap();
+        let cells_per_cpu = self.grid.cells.len() / num_cpus;
+        let cell_chunks = self.grid.cells.chunks_mut(cells_per_cpu);
 
-        for cell_y in 0..self.grid.shape.1 {
-            for cell_x in 0..self.grid.shape.0 {
-                self.update_cell((cell_x, cell_y), types);
+        thread::scope(|s| {
+            for (i, (chunk, core_id)) in cell_chunks.zip(core_ids).enumerate() {
+                s.spawn(move || {
+                    core_affinity::set_for_current(core_id);
+                    for (j, cell) in chunk.iter().enumerate() {
+                        // println!("Thread {} Cell {}", i, j);
+                        unsafe {
+                            let slf = &mut *(self_ptr as *mut Self);
+                            slf.update_cell(&cell, types);
+                        }
+                    }
+                });
             }
-        }
-        // }
+        });
 
         for i in 0..self.num_particles {
             let vel = self.particles[i].vel;
@@ -151,17 +154,30 @@ impl Particles {
         }
     }
 
-    pub fn draw(&self, types: &Vec<ParticleType>) {
+    pub fn draw(&self, types: &Vec<ParticleType>, camera: &Camera2D) {
         // self.grid.draw();
 
         for i in 0..self.num_particles {
-            let type1 = &types[self.particles[i].type_id];
-            draw_circle(
-                self.particles[i].pos.x,
-                self.particles[i].pos.y,
-                PARTICLE_RADIUS,
-                type1.color,
+            let particle = &self.particles[i];
+
+            let view_size_u = 2. / camera.zoom;
+            println!("VIEW SIZE: {:?} {}", view_size_u, camera.zoom);
+            let mid = camera.target;
+            let offset = view_size_u / 2.;
+            let camera_rec = Rect::new(
+                mid.x - offset.x,
+                screen_height() - (mid.y - offset.y),
+                view_size_u.x,
+                -view_size_u.y,
             );
+
+            if !camera_rec.contains(particle.pos) {
+                // println!("{:?} {:?}", camera_rec, particle.pos);
+                continue;
+            }
+
+            let type1 = &types[particle.type_id];
+            draw_circle(particle.pos.x, particle.pos.y, PARTICLE_RADIUS, type1.color);
         }
 
         // let range = Circle::new(mouse_position().0, mouse_position().1, 200.);

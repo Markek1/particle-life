@@ -10,7 +10,6 @@ pub struct Game {
     types: Vec<ParticleType>,
     menu: Menu,
     camera: Camera2D,
-    pub camera_zoom: f32,
     paused: bool,
     prev_mouse_lclick_pos: Option<Vec2>,
 }
@@ -31,7 +30,6 @@ impl Game {
                 WINDOW_SIZE_PX.x,
                 WINDOW_SIZE_PX.y,
             )),
-            camera_zoom: 2. / screen_width(),
             paused: false,
             prev_mouse_lclick_pos: None,
         }
@@ -106,7 +104,7 @@ impl Game {
                     }
                     Some(prev_pos) => {
                         self.camera.target -= Vec2::new(1., -1.) * (mouse_pos - prev_pos)
-                            / (self.camera_zoom * CAMERA_DRAG_SPEED);
+                            / (self.camera.zoom * CAMERA_DRAG_SPEED);
 
                         self.prev_mouse_lclick_pos = Some(mouse_pos);
                     }
@@ -132,8 +130,6 @@ impl Game {
 
         match mouse_wheel() {
             (_x, y) if y != 0.0 => {
-                // // Normalize mouse wheel values is browser (chromium: 53, firefox: 3)
-                // #[cfg(target_arch = "wasm32")]
                 let y = if y < 0.0 {
                     -1.0
                 } else if y > 0.0 {
@@ -143,14 +139,10 @@ impl Game {
                 };
 
                 let factor = (1. + CAMERA_ZOOM_SPEED).powf(y);
-                self.camera_zoom *= factor;
+                self.camera.zoom *= factor;
 
                 // Zoom in to cursor position
-                let view_size_u = 2.
-                    / Vec2::new(
-                        self.camera_zoom,
-                        self.camera_zoom * screen_width() / screen_height(),
-                    );
+                let view_size_u = 2. / self.camera.zoom;
 
                 let mouse_pos_p =
                     Vec2::new(mouse_position().0, screen_height() - mouse_position().1);
@@ -174,16 +166,12 @@ impl Game {
     pub fn draw(&mut self) {
         clear_background(BLACK);
 
-        self.particles.draw(&self.types);
+        self.particles.draw(&self.types, &self.camera);
 
         set_default_camera(); // For drawing the menu
 
         self.menu.draw(&self.types);
 
-        set_camera(&Camera2D {
-            target: self.camera.target,
-            zoom: self.camera_zoom * Vec2::new(1., screen_width() / screen_height()),
-            ..Default::default()
-        });
+        set_camera(&self.camera);
     }
 }

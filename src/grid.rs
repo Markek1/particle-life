@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 
 pub struct Cell {
+    pub pos: (usize, usize),
     rect: Rect,
     pub particles: Vec<usize>,
 }
@@ -23,6 +24,7 @@ impl Grid {
         for y in 0..shape.1 as usize {
             for x in 0..shape.0 as usize {
                 cells.push(Cell {
+                    pos: (x, y),
                     rect: Rect::new(
                         x as f32 * cell_size,
                         y as f32 * cell_size,
