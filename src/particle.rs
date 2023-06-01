@@ -122,14 +122,14 @@ impl Particles {
 
         let num_cpus = num_cpus::get().min(MAX_CORES);
         let core_ids = core_affinity::get_core_ids().expect("Could not get core IDs");
-        let cells_per_cpu = self.grid.cells.len() / num_cpus;
+        let cells_per_cpu = (self.grid.cells.len() as f32 / num_cpus as f32).ceil() as usize;
         let cell_chunks = self.grid.cells.chunks_mut(cells_per_cpu);
 
         thread::scope(|s| {
             for (chunk, core_id) in cell_chunks.zip(core_ids) {
                 s.spawn(move || {
                     core_affinity::set_for_current(core_id);
-                    for cell in chunk.iter() {
+                    for cell in chunk {
                         unsafe {
                             // Epic way to avoid refactoring the code.
                             // It should be safe because update_cells only needs

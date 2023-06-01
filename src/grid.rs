@@ -1,5 +1,6 @@
 use macroquad::prelude::*;
 
+#[derive(Debug)]
 pub struct Cell {
     pub pos: (usize, usize),
     rect: Rect,
