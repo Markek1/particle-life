@@ -6,3 +6,8 @@ Particle simulation inspired by Jeffrey Ventrella's [Clusters](https://www.ventr
 
 
 [v2_compressed.webm](https://github.com/Markek1/particle-life/assets/51086796/07d49973-cbca-4b46-a608-56c63c299a77)
+
+Can be run by cloning the repository and running
+```
+cargo run --release
+```
