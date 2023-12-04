@@ -29,7 +29,7 @@ async fn main() {
         time::SystemTime::now()
             .duration_since(time::UNIX_EPOCH)
             .expect("Time travel")
-            .as_secs() as u64,
+            .as_secs(),
     );
     let mut game = Game::new();
 

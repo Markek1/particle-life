@@ -14,8 +14,8 @@ pub struct Area {
 impl Area {
     pub fn new(pos: [f32; 2], size: [f32; 2]) -> Self {
         Self {
-            pos: Vec2::new(pos[0] as f32, pos[1] as f32),
-            size: Vec2::new(size[0] as f32, size[1] as f32),
+            pos: Vec2::new(pos[0], pos[1]),
+            size: Vec2::new(size[0], size[1]),
         }
     }
 
@@ -45,7 +45,7 @@ impl Button {
         let mut area = area;
         area.size -= 2.;
         Self {
-            area: area,
+            area,
             label,
             color,
             btn_type,
@@ -121,7 +121,7 @@ impl ButtonGrid {
                     [area.pos.x, area.pos.y + button_size * i as f32],
                     [button_size, button_size],
                 ),
-                format!(""),
+                String::new(),
                 WHITE,
                 ButtonType::Circle,
             );
@@ -135,7 +135,7 @@ impl ButtonGrid {
                     [area.pos.x + button_size * i as f32, area.pos.y],
                     [button_size, button_size],
                 ),
-                format!(""),
+                String::new(),
                 WHITE,
                 ButtonType::Circle,
             );
@@ -153,7 +153,7 @@ impl ButtonGrid {
                         ],
                         [button_size, button_size],
                     ),
-                    format!(""),
+                    String::new(),
                     WHITE,
                     ButtonType::Rect,
                 );
@@ -179,7 +179,7 @@ impl ButtonGrid {
         return_val
     }
 
-    pub fn click(&mut self, point: Vec2, types: &mut Vec<ParticleType>, click_type: ClickType) {
+    pub fn click(&mut self, point: Vec2, types: &mut [ParticleType], click_type: ClickType) {
         // Ignore row and column buttons and if click was on a grid button, increase ParticleType attraction index
         for row in 0..self.rows {
             for col in 0..self.cols {
@@ -199,7 +199,7 @@ impl ButtonGrid {
         }
     }
 
-    pub fn draw(&mut self, types: &Vec<ParticleType>) {
+    pub fn draw(&mut self, types: &[ParticleType]) {
         draw_rectangle(
             self.area.pos.x,
             self.area.pos.y,
@@ -229,7 +229,7 @@ impl ButtonGrid {
         }
     }
 
-    fn update_grid_button(&mut self, row: usize, col: usize, types: &Vec<ParticleType>) {
+    fn update_grid_button(&mut self, row: usize, col: usize, types: &[ParticleType]) {
         let button = &mut self.buttons[row * self.cols + col];
 
         let attr = types[row].attraction[col];

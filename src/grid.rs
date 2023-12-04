@@ -22,8 +22,8 @@ impl Grid {
         );
         cell_size += (game_area_size.x % cell_size) / shape.0 as f32;
         let mut cells = Vec::new();
-        for y in 0..shape.1 as usize {
-            for x in 0..shape.0 as usize {
+        for y in 0..shape.1 {
+            for x in 0..shape.0 {
                 cells.push(Cell {
                     pos: (x, y),
                     rect: Rect::new(
@@ -46,10 +46,10 @@ impl Grid {
 
     pub fn cell_pos_from_pos(&self, pos: Vec2) -> (usize, usize) {
         let mut x = (pos.x / self.cell_size).floor() as usize;
-        x %= self.shape.0 as usize;
+        x %= self.shape.0;
 
         let mut y = (pos.y / self.cell_size).floor() as usize;
-        y %= self.shape.1 as usize;
+        y %= self.shape.1;
 
         (x, y)
     }

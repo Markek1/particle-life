@@ -93,32 +93,26 @@ impl Game {
 
         let mouse_pos = mouse_position();
         let mouse_pos = Vec2::new(mouse_pos.0, mouse_pos.1);
-        if is_mouse_button_down(MouseButton::Left) {
-            if !self.menu.area.contains(mouse_pos) {
-                match self.prev_mouse_lclick_pos {
-                    None => {
-                        self.prev_mouse_lclick_pos = Some(mouse_pos);
-                    }
-                    Some(prev_pos) => {
-                        self.camera.target -= Vec2::new(1., -1.) * (mouse_pos - prev_pos)
-                            / (self.camera.zoom * CAMERA_DRAG_SPEED);
+        if is_mouse_button_down(MouseButton::Left) && !self.menu.area.contains(mouse_pos) {
+            match self.prev_mouse_lclick_pos {
+                None => {
+                    self.prev_mouse_lclick_pos = Some(mouse_pos);
+                }
+                Some(prev_pos) => {
+                    self.camera.target -= Vec2::new(1., -1.) * (mouse_pos - prev_pos)
+                        / (self.camera.zoom * CAMERA_DRAG_SPEED);
 
-                        self.prev_mouse_lclick_pos = Some(mouse_pos);
-                    }
+                    self.prev_mouse_lclick_pos = Some(mouse_pos);
                 }
             }
         }
 
-        if is_mouse_button_down(MouseButton::Left) {
-            if self.menu.area.contains(mouse_pos) {
-                self.menu.click(mouse_pos, &mut self.types, ClickType::Left);
-            }
+        if is_mouse_button_down(MouseButton::Left) && self.menu.area.contains(mouse_pos) {
+            self.menu.click(mouse_pos, &mut self.types, ClickType::Left);
         }
-        if is_mouse_button_down(MouseButton::Right) {
-            if self.menu.area.contains(mouse_pos) {
-                self.menu
-                    .click(mouse_pos, &mut self.types, ClickType::Right);
-            }
+        if is_mouse_button_down(MouseButton::Right) && self.menu.area.contains(mouse_pos) {
+            self.menu
+                .click(mouse_pos, &mut self.types, ClickType::Right);
         }
 
         if is_mouse_button_released(MouseButton::Left) {

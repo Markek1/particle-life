@@ -1,4 +1,3 @@
-use core_affinity;
 use macroquad::prelude::*;
 use std::thread;
 
@@ -25,8 +24,8 @@ pub struct Particle {
 impl Particle {
     pub fn new(pos: [f32; 2], vel: [f32; 2], type_id: usize) -> Self {
         Self {
-            pos: Vec2::new(pos[0] as f32, pos[1] as f32),
-            vel: Vec2::new(vel[0] as f32, vel[1] as f32),
+            pos: Vec2::new(pos[0], pos[1]),
+            vel: Vec2::new(vel[0], vel[1]),
             type_id,
         }
     }
@@ -53,7 +52,7 @@ impl Particles {
         self.num_particles += 1;
     }
 
-    pub fn update_cell(&mut self, cell: &Cell, types: &Vec<ParticleType>) {
+    pub fn update_cell(&mut self, cell: &Cell, types: &[ParticleType]) {
         let cell_x = cell.pos.0 as isize;
         let cell_y = cell.pos.1 as isize;
 
@@ -90,7 +89,7 @@ impl Particles {
                         }
 
                         let distance = d.length();
-                        d = d / distance;
+                        d /= distance;
 
                         // Unsafe because of using static variables that might be changed
                         unsafe {
@@ -112,7 +111,7 @@ impl Particles {
         }
     }
 
-    pub fn update(&mut self, types: &Vec<ParticleType>) {
+    pub fn update(&mut self, types: &[ParticleType]) {
         self.grid = Grid::new(GAME_AREA_SIZE_U, MAX_DISTNACE.max(MIN_DISTANCE));
         for i in 0..self.num_particles {
             self.grid.insert(i, self.particles[i].pos);
@@ -120,7 +119,7 @@ impl Particles {
 
         let self_ptr = self as *const _ as usize;
 
-        let num_cpus = num_cpus::get().min(MAX_CORES);
+        let num_cpus = (num_cpus::get().min(MAX_CORES) - 1).max(1);
         let core_ids = core_affinity::get_core_ids().expect("Could not get core IDs");
         let cells_per_cpu = (self.grid.cells.len() as f32 / num_cpus as f32).ceil() as usize;
         let cell_chunks = self.grid.cells.chunks_mut(cells_per_cpu);
@@ -138,7 +137,7 @@ impl Particles {
                             // The positions are updated based on their velocities later
                             let slf = &mut *(self_ptr as *mut Self);
 
-                            slf.update_cell(&cell, types);
+                            slf.update_cell(cell, types);
                         }
                     }
                 });
@@ -165,7 +164,7 @@ impl Particles {
         }
     }
 
-    pub fn draw(&self, types: &Vec<ParticleType>, camera: &Camera2D) {
+    pub fn draw(&self, types: &[ParticleType], camera: &Camera2D) {
         // self.grid.draw();
 
         for i in 0..self.num_particles {
